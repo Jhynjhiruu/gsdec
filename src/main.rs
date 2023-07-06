@@ -4,14 +4,12 @@ use std::fs::{read, write};
 
 use args::{OperationMode, Options};
 
-use anyhow::Result;
-
 const KEY: [u32; 0x10] = [
-    0x2E337114, 0x2E434981, 0x217B6975, 0x83785915, 0x35D42A1C, 0x34E8AD13, 0xB118DEE2, 0x3578BC51,
-    0xD4328715, 0x1276D768, 0x41444255, 0x22FEF3D1, 0x9478EDAE, 0x12536834, 0x636526A3, 0x2EC12C45,
+    0x1471332E, 0x8149432E, 0x75697B21, 0x15597883, 0x1C2AD435, 0x13ADE834, 0xE2DE18B1, 0x51BC7835,
+    0x158732D4, 0x68D77612, 0x55424441, 0xD1F3FE22, 0xAEED7894, 0x34685312, 0xA3266563, 0x452CC12E,
 ];
 
-fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
     let options = Options::parse();
 
     let filedata = read(options.infile)?;
@@ -22,15 +20,15 @@ fn main() -> Result<()> {
         .flat_map(|(index, e)| {
             match options.mode {
                 OperationMode::Enc => {
-                    u32::from_be_bytes(e.try_into().unwrap())
+                    u32::from_le_bytes(e.try_into().unwrap())
                         .wrapping_add(KEY[index % 0x10] & 0x0000FF00)
                         ^ KEY[index % 0x10]
                 }
-                OperationMode::Dec => (u32::from_be_bytes(e.try_into().unwrap())
+                OperationMode::Dec => (u32::from_le_bytes(e.try_into().unwrap())
                     ^ KEY[index % 0x10])
                     .wrapping_sub(KEY[index % 0x10] & 0x0000FF00),
             }
-            .to_be_bytes()
+            .to_le_bytes()
         })
         .collect::<Vec<_>>();
 
